@@ -1,6 +1,9 @@
 if RUBY_ENGINE == 'opal'
   require 'tone/vendor'
-  require 'tone/all'
+  require 'tone/transport'
+  require 'tone/event'
+  require 'tone/synth'
+  require 'tone/effect'
 else
   require 'opal'
 
