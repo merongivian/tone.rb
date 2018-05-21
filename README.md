@@ -1,20 +1,18 @@
-# Tone
+# Tone.rb
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/tone`. To experiment with that code, run `bin/console` for an interactive prompt.
-
-TODO: Delete this and the text above, and describe your gem
+Ruby wrapper for [Tone.js](https://github.com/feedjira/feedjira). This is used in the live coding environment of [Negasonic](https://negasonic.herokuapp.com/)
 
 ## Installation
 
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'tone'
+gem 'tone.rb'
 ```
 
 And then execute:
 
-    $ bundle
+    $ bundle install
 
 Or install it yourself as:
 
@@ -22,17 +20,62 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+Tone.rb targets version 11 of Tone.js. This are the current implemented modules:
 
-## Development
+### Transport
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Handles the global execution of elements in Tone.js
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```ruby
+# play after 0.1 seconds
+Tone::Transport.start("+0.1")
+
+# stop now
+Tone::Transport.stop
+```
+
+### Synth
+
+Adds basic functionality for handling it as an input node, playing notes, as well as the ability
+to compare it with other synths
+
+```ruby
+# Volume is measured in decibels
+synth = Tone::Synth::FM.new(volume: 2)
+
+# Play the E2 note at 0 and release at 0.5 seconds
+synth.trigger_attack_release('E2', 0.5, 0)
+
+# Each synths are compared by the volume attribute
+synth == Tone::Synth::FM.new(volume: 2) #=> true
+synth == Tone::Synth::FM.new(volume: 3) #=> false
+synth == Tone::Synth::AM.new(volume: 2) #=> false
+
+# Connect all effects between each other and connect the synth as the input
+synth.chain(array_of_effects)
+```
+
+### Effect
+
+Similar to `Synth`, you can compare between effects, as well as remove
+them trough `Effect#dispose` (good for performance)
+
+```ruby
+# each effect has specific attributes
+vibrato = Tone::Effect::Vibrato.new(frequency: 5, depth: 0.1)
+vibrato == Tone::Effect::Vibrato.new(frequency: 5, depth: 0.2) #=> false
+```
+
+for more info check the [Tone.js Docs](https://tonejs.github.io/docs/)
+
+## TODO
+
+* Basic tests
+* Wrap remaining Tone.js modules
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/tone.
+Bug reports and pull requests are welcome on GitHub at https://github.com/merongivian/tone.rb
 
 ## License
 
