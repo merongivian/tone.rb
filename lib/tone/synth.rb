@@ -59,7 +59,6 @@ module Tone
       end
     end
 
-    # TODO
     class Metal < Base
       def initialize(**opts)
         super `new Tone.MetalSynth().toMaster()`, **opts
@@ -72,7 +71,6 @@ module Tone
       end
     end
 
-    # TODO
     class Noise < Base
       def initialize(**opts)
         super `new Tone.NoiseSynth().toMaster()`, **opts

@@ -153,5 +153,73 @@ module Tone
               feedback == other.feedback
       end
     end
+
+    class AutoWah < Base
+      attr_reader :base_frequency, :octave, :sensitivity, :q
+
+      def initialize(base_frequency: 100, octaves: 6, sensitivity: 0, q: 2)
+        @base_frequency = base_frequency
+        @octaves = octaves
+        @sensitivity = sensitivity
+        @q = q
+
+        super `new Tone.AutoWah(base_frequency, octaves, sensitivity)`
+
+        `#@native.Q.value = q`
+      end
+
+      def ==(other)
+        super &&
+          base_frequency == other.base_frequency &&
+            octave == other.octave &&
+              sensitivity == other.sensitivity &&
+                q == other.q
+      end
+    end
+
+    class BitCrusher < Base
+      attr_reader :bits
+
+      def initialize(bits: 4)
+        @bits = bits
+
+        super `new Tone.BitCrusher(bits)`
+      end
+
+      def ==(other)
+        super &&
+          bits == other.bits
+      end
+    end
+
+    class Chebyshev < Base
+      attr_reader :order
+
+      def initialize(order: 4)
+        @order = order
+
+        super `new Tone.Chebyshev(order)`
+      end
+
+      def ==(other)
+        super &&
+          order == other.order
+      end
+    end
+
+    class PitchShift < Base
+      attr_reader :pitch
+
+      def initialize(pitch: 4)
+        @pitch = pitch
+
+          super `new Tone.PitchShift(pitch)`
+      end
+
+      def ==(other)
+        super &&
+          pitch == other.pitch
+      end
+    end
   end
 end
