@@ -21,9 +21,8 @@ module Tone
         `Tone.Transport.cancel()`
       end
 
-      def schedule_after(time, &block)
-        future_time = `Tone.Transport.seconds + time`
-        `Tone.Transport.scheduleOnce(#{block.to_n}, Tone.TransportTime(future_time))`
+      def schedule_once(time, &block)
+        `Tone.Transport.scheduleOnce(#{block.to_n}, time)`
       end
     end
   end
