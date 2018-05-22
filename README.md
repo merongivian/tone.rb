@@ -66,6 +66,30 @@ vibrato = Tone::Effect::Vibrato.new(frequency: 5, depth: 0.1)
 vibrato == Tone::Effect::Vibrato.new(frequency: 5, depth: 0.2) #=> false
 ```
 
+### Event
+
+Events schedules a group of notes in a certain order across the `Transport`
+
+```ruby
+
+# schedules notes in order every 2 seconds
+Tone::Event::Sequence.new([['E2', 'C1'], 'D2'], 'C2'], 2) do |time, note|
+  Tone::Synth::FM.new.trigger_attack_release note, '1', time
+end
+
+# schedules notes in a random order
+pattern = Tone::Event::Pattern.new(['E2', 'C1', 'D2', 'C2'], :random) do |time, note|
+  Tone::Synth::FM.new.trigger_attack_release note, '1', time
+end
+
+# every 2 seconds
+pattern.interval = 2
+
+# run it in loop mode
+pattern.start(0)
+pattern.loop = true
+```
+
 for more info check the [Tone.js Docs](https://tonejs.github.io/docs/)
 
 ## TODO
