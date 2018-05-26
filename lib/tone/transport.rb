@@ -21,6 +21,14 @@ module Tone
         `Tone.Transport.cancel()`
       end
 
+      def state
+        `Tone.Transport.state`
+      end
+
+      def next_subdivision(subdivision)
+        `Tone.Transport.nextSubdivision(subdivision)`
+      end
+
       def schedule_once(time, &block)
         `Tone.Transport.scheduleOnce(#{block.to_n}, time)`
       end
