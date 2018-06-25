@@ -32,6 +32,10 @@ module Tone
       def schedule_once(time, &block)
         `Tone.Transport.scheduleOnce(#{block.to_n}, time)`
       end
+
+      def schedule_repeat(time, &block)
+        `Tone.Transport.scheduleRepeat(#{block.to_n}, time)`
+      end
     end
   end
 end
