@@ -33,6 +33,10 @@ module Tone
         volume == other.volume &&
           self.class == other.class
       end
+
+      def clone
+        self.class.new(volume: volume)
+      end
     end
 
     class AM < Base
