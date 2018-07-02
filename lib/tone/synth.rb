@@ -4,6 +4,7 @@ module Tone
       include Native
 
       alias_native :connect
+      alias_native :disconnect
       alias_native :dispose
       alias_native :trigger_attack_release, :triggerAttackRelease
       alias_native :trigger_attack, :triggerAttack
@@ -36,6 +37,10 @@ module Tone
 
       def clone
         self.class.new(volume: volume)
+      end
+
+      def to_master
+        self.connect(`Tone.Master`)
       end
     end
 

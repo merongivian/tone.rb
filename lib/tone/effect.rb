@@ -10,6 +10,10 @@ module Tone
       def ==(other)
         self.class == other.class
       end
+
+      def to_master
+        connect(`Tone.Master`)
+      end
     end
 
     class Chorus < Base
