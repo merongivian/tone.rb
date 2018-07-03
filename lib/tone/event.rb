@@ -6,6 +6,9 @@ module Tone
       alias_native :start
       alias_native :dispose
       native_writer :loop
+      native_writer :humanize
+      native_writer :probability
+      native_writer :playback_rate, :playbackRate
     end
 
     class Pattern < Base
