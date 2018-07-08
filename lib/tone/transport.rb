@@ -36,6 +36,14 @@ module Tone
       def schedule_repeat(time, &block)
         `Tone.Transport.scheduleRepeat(#{block.to_n}, time)`
       end
+
+      def bpm=(new_bpm)
+        `Tone.Transport.bpm.value = new_bpm`
+      end
+
+      def bpm_ramp_to(new_bpm, seconds)
+        `Tone.Transport.bpm.rampTo(new_bpm, seconds)`
+      end
     end
   end
 end
