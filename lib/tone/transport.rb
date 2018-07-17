@@ -37,6 +37,10 @@ module Tone
         `Tone.Transport.scheduleRepeat(#{block.to_n}, time)`
       end
 
+      def ticks
+        `Tone.Transport.ticks`
+      end
+
       def bpm=(new_bpm)
         `Tone.Transport.bpm.value = new_bpm`
       end
