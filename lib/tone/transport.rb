@@ -17,6 +17,10 @@ module Tone
         end
       end
 
+      def pause(time = '+0.1')
+        `Tone.Transport.pause(time)`
+      end
+
       def cancel
         `Tone.Transport.cancel()`
       end
@@ -25,8 +29,20 @@ module Tone
         `Tone.Transport.state`
       end
 
+      def loop_end=(time)
+        `Tone.Transport.loopEnd = time`
+      end
+
+      def loop=(value)
+        `Tone.Transport.loop = value`
+      end
+
       def next_subdivision(subdivision)
         `Tone.Transport.nextSubdivision(subdivision)`
+      end
+
+      def schedule(time, &block)
+        `Tone.Transport.schedule(#{block.to_n}, time)`
       end
 
       def schedule_once(time, &block)
@@ -35,6 +51,22 @@ module Tone
 
       def schedule_repeat(time, &block)
         `Tone.Transport.scheduleRepeat(#{block.to_n}, time)`
+      end
+
+      def started?
+        `Tone.Transport.state == 'started'`
+      end
+
+      def stopped?
+        `Tone.Transport.state == 'stopped'`
+      end
+
+      def paused?
+        `Tone.Transport.state == 'paused'`
+      end
+
+      def cancel
+        `Tone.Transport.cancel()`
       end
 
       def ticks
