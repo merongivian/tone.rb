@@ -5,10 +5,20 @@ module Tone
 
       alias_native :start
       alias_native :dispose
+      alias_native :at
       native_writer :loop
       native_writer :humanize
+      native_writer :mute
       native_writer :probability
-      native_writer :playback_rate, :playbackRate
+      native_reader :state
+
+      def loop_end=(time)
+        `#@native.loopEnd = time`
+      end
+
+      def playback_rate=(rate)
+        `#@native.playbackRate = rate`
+      end
     end
 
     class Pattern < Base

@@ -25,6 +25,10 @@ module Tone
         `Tone.Transport.cancel()`
       end
 
+      def clear(event_id)
+        `Tone.Transport.clear(event_id)`
+      end
+
       def state
         `Tone.Transport.state`
       end
