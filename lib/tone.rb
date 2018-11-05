@@ -1,4 +1,5 @@
 if RUBY_ENGINE == 'opal'
+  require 'native'
   require 'tone/vendor'
   require 'tone/transport'
   require 'tone/event'
