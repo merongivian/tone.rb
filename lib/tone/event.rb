@@ -7,9 +7,9 @@ module Tone
       alias_native :dispose
       alias_native :at
       native_writer :loop
-      native_writer :humanize
+      native_accessor :humanize
       native_writer :mute
-      native_writer :probability
+      native_accessor :probability
       native_reader :state
 
       def loop_end=(time)
@@ -18,6 +18,10 @@ module Tone
 
       def playback_rate=(rate)
         `#@native.playbackRate = rate`
+      end
+
+      def ==(other)
+        self.class == other.class
       end
     end
 
@@ -36,8 +40,20 @@ module Tone
     end
 
     class Sequence < Base
+      attr_reader :segments, :duration
+
       def initialize(segments, duration, &block)
+        @segments = segments
+        @duration = duration
         super `new Tone.Sequence(#{block.to_n}, #{segments.to_n}, duration)`
+      end
+
+      def ==(other)
+        super &&
+          segments == other.segments &&
+            duration == other.duration &&
+              humanize == other.humanize &&
+                probability == other.probability
       end
     end
 
