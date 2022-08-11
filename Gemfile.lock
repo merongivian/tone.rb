@@ -13,14 +13,14 @@ GEM
       parser (~> 3.0, >= 3.0.3.2)
     parser (3.1.2.1)
       ast (~> 2.4.1)
-    rake (10.5.0)
+    rake (13.0.6)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   bundler (~> 1.16)
-  rake (~> 10.0)
+  rake (~> 13.0)
   tone.rb!
 
 BUNDLED WITH
