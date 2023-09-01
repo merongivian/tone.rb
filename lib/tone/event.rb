@@ -1,7 +1,7 @@
 module Tone
   module Event
     class Base
-      include Native
+      include Native::Wrapper
 
       alias_native :start
       alias_native :dispose

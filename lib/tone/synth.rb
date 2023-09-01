@@ -1,7 +1,7 @@
 module Tone
   module Synth
     class Base
-      include Native
+      include Native::Wrapper
 
       alias_native :connect
       alias_native :disconnect
