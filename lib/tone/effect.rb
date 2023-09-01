@@ -1,7 +1,7 @@
 module Tone
   module Effect
     class Base
-      include Native
+      include Native::Wrapper
 
       alias_native :dispose
       alias_native :connect
