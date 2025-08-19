@@ -19,3 +19,17 @@ task :update_stable do
     File.write(js_lib_dest, f.readlines.join)
   end
 end
+
+desc 'Start test server'
+task :test_server do
+  system('rackup -p 9292 -o 0.0.0.0')
+end
+
+desc 'Run audio tests'
+task :test do
+  puts "Starting test server..."
+  puts "Open your browser to: http://localhost:9292"
+  puts "Tests will run automatically"
+  puts "Press Ctrl+C to stop"
+  system('rackup -p 9292 -o 0.0.0.0')
+end

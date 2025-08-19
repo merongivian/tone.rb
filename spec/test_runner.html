@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tone.rb Opal Wrapper Audio Tests</title>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .audio-notice {
+            background: #e7f3ff;
+            border: 1px solid #bee5eb;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #0c5460;
+        }
+        .controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        #results {
+            margin-top: 20px;
+        }
+        .test-status {
+            font-family: monospace;
+            white-space: pre-line;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .test-status.error {
+            border-left-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Tone.rb Opal Wrapper Audio Tests</h1>
+        
+        <div class="audio-notice">
+            <h3>🔊 Ruby Opal Wrapper Audio Testing</h3>
+            <p>This test suite verifies that the Ruby Opal wrapper classes can generate actual audio.</p>
+            <p><strong>What we're testing:</strong></p>
+            <ul>
+                <li>Ruby <code>Tone::Synth</code> classes produce audible sound</li>
+                <li>Ruby <code>Tone::Transport</code> methods control audio timing</li>
+                <li>Ruby <code>Tone::Effect</code> classes process and modify audio signals</li>
+                <li>Ruby <code>Tone::Event</code> classes schedule and sequence audio events</li>
+                <li>Ruby wrapper methods properly call underlying Tone.js functions</li>
+                <li>Audio signal measurement using Tone.Meter through Ruby interface</li>
+            </ul>
+        </div>
+
+        <div class="controls">
+            <button id="start-audio" onclick="startAudioContext()">Start Audio Context</button>
+            <button id="run-tests" onclick="runTests()" disabled>Run Ruby Wrapper Tests</button>
+        </div>
+
+        <div id="results">
+            <div id="status" class="test-status">Click "Start Audio Context" to begin</div>
+        </div>
+    </div>
+
+    <script src="../lib/tone/vendor.js"></script>
+    <script src="opal-bundle.js"></script>
+    <script>
+        let audioStarted = false;
+        
+        async function startAudioContext() {
+            const statusDiv = document.getElementById('status');
+            const startBtn = document.getElementById('start-audio');
+            const runBtn = document.getElementById('run-tests');
+            
+            try {
+                statusDiv.textContent = 'Starting audio context...';
+                
+                await Tone.start();
+                
+                // Load your actual Ruby wrapper files
+                const synthResponse = await fetch('../lib/tone/synth.rb');
+                const synthCode = await synthResponse.text();
+                
+                const transportResponse = await fetch('../lib/tone/transport.rb');
+                const transportCode = await transportResponse.text();
+                
+                const effectResponse = await fetch('../lib/tone/effect.rb');
+                const effectCode = await effectResponse.text();
+                
+                const eventResponse = await fetch('../lib/tone/event.rb');
+                const eventCode = await eventResponse.text();
+                
+                // Load Ruby wrapper code with native handling
+                const modifiedSynthCode = synthCode.replace(/require 'native'/, `
+                  begin
+                    require 'native'
+                  rescue LoadError
+                    # Native already loaded in bundle
+                  end
+                `);
+                
+                Opal.eval(modifiedSynthCode);
+                Opal.eval(transportCode);
+                
+                const modifiedEffectCode = effectCode.replace(/require 'native'/, `
+                  begin
+                    require 'native'
+                  rescue LoadError
+                    # Native already loaded in bundle
+                  end
+                `);
+                
+                const modifiedEventCode = eventCode.replace(/require 'native'/, `
+                  begin
+                    require 'native'
+                  rescue LoadError
+                    # Native already loaded in bundle
+                  end
+                `);
+                
+                Opal.eval(modifiedEffectCode);
+                Opal.eval(modifiedEventCode);
+                
+                audioStarted = true;
+                startBtn.disabled = true;
+                runBtn.disabled = false;
+                
+                statusDiv.textContent = 'Audio context and Ruby wrapper loaded! Ready to run tests.';
+                statusDiv.className = 'test-status';
+                
+            } catch (error) {
+                statusDiv.textContent = `Error: ${error.message}`;
+                statusDiv.className = 'test-status error';
+            }
+        }
+        
+        async function runTests() {
+            const statusDiv = document.getElementById('status');
+            const runBtn = document.getElementById('run-tests');
+            
+            runBtn.disabled = true;
+            
+            try {
+                statusDiv.textContent = 'Running Ruby Opal wrapper audio tests...';
+                
+                // Test helper to verify audio generation
+                function testAudioGeneration(rubySource, duration = 0.2, threshold = -50) {
+                    return new Promise((resolve, reject) => {
+                        const meter = new Tone.Meter({smoothing: 0.1});
+                        
+                        // Use Ruby wrapper's connect method to connect to meter
+                        rubySource.$connect(meter);
+                        
+                        let hasAudio = false;
+                        let checkCount = 0;
+                        const maxChecks = Math.floor(duration * 1000 / 50);
+                        
+                        function checkAudio() {
+                            checkCount++;
+                            const level = meter.getValue();
+                            const currentLevel = Array.isArray(level) ? Math.max(...level) : level;
+                            
+                            if (currentLevel > threshold) {
+                                hasAudio = true;
+                            }
+                            
+                            if (checkCount >= maxChecks) {
+                                // Disconnect using Ruby wrapper
+                                try {
+                                    rubySource.$disconnect(meter);
+                                } catch(e) {
+                                    // Ignore disconnect errors
+                                }
+                                meter.dispose();
+                                resolve(hasAudio);
+                            } else {
+                                setTimeout(checkAudio, 50);
+                            }
+                        }
+                        
+                        setTimeout(checkAudio, 20);
+                    });
+                }
+                
+                let testResults = [];
+                let passedTests = 0;
+                let totalTests = 0;
+                
+                // Define Ruby wrapper tests
+                const tests = [
+                    {
+                        name: 'Ruby Tone::Synth::Simple generates audio',
+                        test: async () => {
+                            const synth = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              synth.trigger_attack_release('C4', '8n')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(synth, 0.3, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Simple synth');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Synth::FM generates audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::FM.new
+                              synth.trigger_attack_release('G4', '4n')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.4, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby FM synth');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Synth::AM generates audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::AM.new
+                              synth.trigger_attack_release('A4', '4n')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.4, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby AM synth');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Synth::Poly generates chord audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Poly.new
+                              synth.trigger_attack_release(['C4', 'E4', 'G4'], '4n')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.4, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Poly synth chord');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Synth::Noise generates audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Noise.new
+                              synth.trigger_attack_release('8n')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.2, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Noise synth');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Transport schedules audio correctly',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              
+                              Tone::Transport.schedule(0) do
+                                synth.trigger_attack_release('E4', '4n')
+                              end
+                              
+                              Tone::Transport.start
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            
+                            // Clean up
+                            Opal.eval(`
+                              Tone::Transport.stop
+                            `);
+                            
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Transport scheduled synth');
+                        }
+                    },
+                    {
+                        name: 'Ruby synth trigger_attack and trigger_release work',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              synth.trigger_attack('D4')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.2, -50);
+                            
+                            // Release the note
+                            rubyTest.$trigger_release();
+                            
+                            if (!hasAudio) throw new Error('No audio detected from Ruby synth trigger_attack');
+                        }
+                    },
+                    {
+                        name: 'Ruby synth volume control affects audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new(volume: -10)
+                              synth.trigger_attack_release('F4', '4n')
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.4, -60); // Lower threshold for quieter volume
+                            if (!hasAudio) throw new Error('No audio detected from Ruby synth with volume control');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::Chorus creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              chorus = Tone::Effect::Chorus.new(frequency: 1.5, delay_time: 3.5, depth: 0.7)
+                              synth.connect(chorus)
+                              chorus.to_master
+                              synth.trigger_attack_release('C4', '4n')
+                              chorus
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Chorus effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::Vibrato creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              vibrato = Tone::Effect::Vibrato.new(frequency: 5, depth: 0.1)
+                              synth.connect(vibrato)
+                              vibrato.to_master
+                              synth.trigger_attack_release('G4', '4n')
+                              vibrato
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Vibrato effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::Distortion creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              distortion = Tone::Effect::Distortion.new(value: 0.4)
+                              synth.connect(distortion)
+                              distortion.to_master
+                              synth.trigger_attack_release('A4', '4n')
+                              distortion
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Distortion effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::Tremolo creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              tremolo = Tone::Effect::Tremolo.new(frequency: 10, depth: 0.5)
+                              synth.connect(tremolo)
+                              tremolo.to_master
+                              synth.trigger_attack_release('E4', '4n')
+                              tremolo
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Tremolo effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::FeedbackDelay creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              delay = Tone::Effect::FeedbackDelay.new(delay_time: 0.25, feedback: 0.5)
+                              synth.connect(delay)
+                              delay.to_master
+                              synth.trigger_attack_release('D4', '4n')
+                              delay
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.8, -50); // Longer test for delay effect
+                            if (!hasAudio) throw new Error('No audio detected from Ruby FeedbackDelay effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::Freeverb creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              reverb = Tone::Effect::Freeverb.new(room_size: 0.7, dampening: 3000)
+                              synth.connect(reverb)
+                              reverb.to_master
+                              synth.trigger_attack_release('B4', '4n')
+                              reverb
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.8, -50); // Longer test for reverb effect
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Freeverb effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::Phaser creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              phaser = Tone::Effect::Phaser.new(frequency: 0.5, octaves: 3, base_frequency: 350)
+                              synth.connect(phaser)
+                              phaser.to_master
+                              synth.trigger_attack_release('F4', '4n')
+                              phaser
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Phaser effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Effect::BitCrusher creates and processes audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              bitcrusher = Tone::Effect::BitCrusher.new(bits: 4)
+                              synth.connect(bitcrusher)
+                              bitcrusher.to_master
+                              synth.trigger_attack_release('C5', '4n')
+                              bitcrusher
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 0.5, -50);
+                            if (!hasAudio) throw new Error('No audio detected from Ruby BitCrusher effect');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Event::Sequence schedules and plays audio',
+                        test: async () => {
+                            let noteTriggered = false;
+                            
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              sequence = Tone::Event::Sequence.new(['C4', 'E4', 'G4'], '8n') do |time, note|
+                                synth.trigger_attack_release(note, '16n', time)
+                              end
+                              sequence.start(0)
+                              Tone::Transport.start
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 1.0, -50); // Longer test for sequence
+                            
+                            // Clean up
+                            Opal.eval(`
+                              Tone::Transport.stop
+                            `);
+                            
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Event::Sequence');
+                        }
+                    },
+                    {
+                        name: 'Ruby Tone::Event::Loop creates repeating audio',
+                        test: async () => {
+                            const rubyTest = Opal.eval(`
+                              synth = Tone::Synth::Simple.new
+                              loop = Tone::Event::Loop.new('4n') do |time|
+                                synth.trigger_attack_release('A4', '8n', time)
+                              end
+                              loop.start(0)
+                              Tone::Transport.start
+                              synth
+                            `);
+                            
+                            const hasAudio = await testAudioGeneration(rubyTest, 1.2, -50); // Longer test for loop
+                            
+                            // Clean up
+                            Opal.eval(`
+                              Tone::Transport.stop
+                            `);
+                            
+                            if (!hasAudio) throw new Error('No audio detected from Ruby Event::Loop');
+                        }
+                    }
+                ];
+                
+                // Run all tests
+                for (let i = 0; i < tests.length; i++) {
+                    const test = tests[i];
+                    totalTests++;
+                    
+                    statusDiv.textContent = `Running Ruby wrapper tests...\n\n[${i+1}/${tests.length}] ${test.name}...`;
+                    
+                    try {
+                        await test.test();
+                        passedTests++;
+                        testResults.push(`✓ ${test.name}`);
+                    } catch (error) {
+                        testResults.push(`✗ ${test.name}: ${error.message}`);
+                    }
+                    
+                    // Small delay between tests
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                }
+                
+                // Show final results
+                const finalStatus = `Ruby Opal Wrapper Test Results:\n\n${testResults.join('\n')}\n\n${passedTests}/${totalTests} tests passed\n\nThese tests verify that the Ruby Opal wrapper successfully generates audio through the underlying Tone.js library.`;
+                statusDiv.textContent = finalStatus;
+                
+                if (passedTests === totalTests) {
+                    statusDiv.className = 'test-status';
+                } else {
+                    statusDiv.className = 'test-status error';
+                }
+                
+            } catch (error) {
+                statusDiv.textContent = `Error running tests: ${error.message}`;
+                statusDiv.className = 'test-status error';
+            } finally {
+                runBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

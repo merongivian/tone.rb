@@ -7,21 +7,30 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    ast (2.4.2)
-    opal (1.5.1)
+    ast (2.4.3)
+    base64 (0.3.0)
+    opal (1.8.2)
       ast (>= 2.3.0)
       parser (~> 3.0, >= 3.0.3.2)
-    parser (3.1.2.1)
+    parser (3.3.9.0)
       ast (~> 2.4.1)
-    rake (10.5.0)
+      racc
+    racc (1.8.1)
+    rack (2.2.17)
+    rake (13.3.0)
+    webrick (1.9.1)
 
 PLATFORMS
+  arm64-darwin-24
   ruby
 
 DEPENDENCIES
-  bundler (~> 1.16)
-  rake (~> 10.0)
+  base64 (~> 0.1)
+  bundler (>= 1.17)
+  rack (~> 2.2)
+  rake (>= 10.0)
   tone.rb!
+  webrick (~> 1.7)
 
 BUNDLED WITH
-   1.16.2
+   2.7.1
